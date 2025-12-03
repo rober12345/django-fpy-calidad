@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FPY por inspector</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { margin-bottom: 5px; }
+        form { border: 1px solid #ccc; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        label { font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        .inspector-block { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; }
+        button { margin-top: 10px; padding: 8px 15px; cursor: pointer; }
+        .charts { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 30px; }
+        .chart-container { width: 400px; max-width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>FPY por inspector</h1>
+    <p>FPY = (Total inspeccionado − Retrabajado) / Total inspeccionado</p>
+
+    <form method="post">
+        {% csrf_token %}
+       
+        <div class="inspector-block">
+            <h3>Inspector 1</h3>
+            {{ form.inspector1_name.label_tag }}<br>
+            {{ form.inspector1_name }}<br>
+            {{ form.inspector1_inspected.label_tag }}<br>
+            {{ form.inspector1_inspected }}<br>
+            {{ form.inspector1_reworked.label_tag }}<br>
+            {{ form.inspector1_reworked }}
+        </div>
+
+        <div class="inspector-block">
+            <h3>Inspector 2</h3>
+            {{ form.inspector2_name.label_tag }}<br>
+            {{ form.inspector2_name }}<br>
+            {{ form.inspector2_inspected.label_tag }}<br>
+            {{ form.inspector2_inspected }}<br>
+            {{ form.inspector2_reworked.label_tag }}<br>
+            {{ form.inspector2_reworked }}
+        </div>
+
+        <div class="inspector-block">
+            <h3>Inspector 3</h3>
+            {{ form.inspector3_name.label_tag }}<br>
+            {{ form.inspector3_name }}<br>
+            {{ form.inspector3_inspected.label_tag }}<br>
+            {{ form.inspector3_inspected }}<br>
+            {{ form.inspector3_reworked.label_tag }}<br>
+            {{ form.inspector3_reworked }}
+        </div>
+
+        <div class="inspector-block">
+            <h3>Inspector 4</h3>
+            {{ form.inspector4_name.label_tag }}<br>
+            {{ form.inspector4_name }}<br>
+            {{ form.inspector4_inspected.label_tag }}<br>
+            {{ form.inspector4_inspected }}<br>
+            {{ form.inspector4_reworked.label_tag }}<br>
+            {{ form.inspector4_reworked }}
+        </div>
+
+        <button type="submit">Calcular FPY</button>
+    </form>
+
+    {% if results %}
+    <h2>Resultados FPY</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Inspector</th>
+                <th>Total inspeccionado</th>
+                <th>Retrabajado</th>
+                <th>FPY %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in results %}
+            <tr>
+                <td>{{ r.name }}</td>
+                <td>{{ r.inspected }}</td>
+                <td>{{ r.reworked }}</td>
+                <td>{{ r.fpy }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="charts">
+        <div class="chart-container">
+            <h3>FPY % por inspector</h3>
+            <canvas id="fpyChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Inspeccionado vs Retrabajado</h3>
+            <canvas id="qtyChart"></canvas>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Chart.js desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {% if results %}
+    <script>
+        const labels = {{ chart_labels|safe }};
+        const fpyData = {{ chart_fpy|safe }};
+        const inspectedData = {{ chart_inspected|safe }};
+        const reworkedData = {{ chart_reworked|safe }};
+
+        // Gráfica FPY %
+        const ctxFpy = document.getElementById('fpyChart').getContext('2d');
+        new Chart(ctxFpy, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'FPY %',
+                    data: fpyData,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Gráfica inspeccionado vs retrabajado
+        const ctxQty = document.getElementById('qtyChart').getContext('2d');
+        new Chart(ctxQty, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Inspeccionado',
+                        data: inspectedData,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Retrabajado',
+                        data: reworkedData,
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>
